@@ -10,7 +10,7 @@ const secretKey = core.getInput("secretKey", {
   required: true
 });
 const urlOpen = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/openAdb';
-const urlRevease = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/releaseAdb';
+const urlRelease = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/releaseAdb';
 const urlDevices = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/getDeviceByConditions';
 const urlDevicesNum = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/randomGetDevice';
 
@@ -26,7 +26,7 @@ function newtestRequest() {
       url = urlOpen;
       break;
     case 'release':
-      url = urlRevease;
+      url = urlRelease;
       break;
     case 'devices':
       url = urlDevices;
@@ -61,8 +61,12 @@ function newtestRequest() {
         core.setFailed('no uuids');
         return;
       }
+      if (!paramObj.maxMin) {
+        core.setFailed('no maxMin');
+        return;
+      }
       param.uuids = paramObj.uuids;
-      paramObj.maxMin && (param.maxMin = paramObj.maxMin);
+      param.maxMin = paramObj.maxMin;
     } else if (type === 'release') {
       if (!paramObj.uuids) {
         core.setFailed('no uuids');
@@ -116,13 +120,13 @@ function newtestRequest() {
     },
     body: JSON.stringify(param)
   }, (error, response) => {
-    console.error(error, response.toJSON())
     if (error) {
       console.error(error);
       core.setFailed(error.message);
       return;
     }
-    const rsp = response.toJSON()
+    const rsp = response.toJSON();
+    console.error(rsp.body);
     if (rsp.statusCode !== 200) {
       core.setFailed(rsp.body);
     } else {
