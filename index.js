@@ -42,12 +42,12 @@ function newtestRequest() {
     return;
   }
   let str = '';
-  let param = Object.assign({}, params, {
+  let param = {
     secretId: secretId,
     signTime: signTime,
     sigNonce: uuid.v1(),
     signMethod: 'SHA256'
-  });
+  };
   let paramObj;
   try {
     paramObj = JSON.parse(paramStr)
