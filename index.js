@@ -75,7 +75,7 @@ function newtestRequest() {
       param.uuids = paramObj.uuids;
     } else if (type === 'devicesNum') {
       if (!paramObj.deviceNumber) {
-        core.setFailed('no devicesNum');
+        core.setFailed('no deviceNumber');
         return;
       }
       param.deviceNumber = paramObj.deviceNumber;
@@ -111,7 +111,7 @@ function newtestRequest() {
   param.sign = crypto.createHash('SHA256').update(str).digest('hex');
   param = sortObj(param);
   console.error(JSON.stringify(param))
-  request(urlDevices, {
+  request(url, {
     method: "POST",
     headers: {
       'Content-Type': 'application/json;charset=UTF-8',
