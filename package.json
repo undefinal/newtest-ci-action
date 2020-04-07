@@ -1,0 +1,14 @@
+{
+  "name": "newtestCIAction",
+  "version": "0.0.1",
+  "description": "newtest ci action",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "request": "^2.88.2",
+    "uuid": "^7.0.3"
+  }
+}
