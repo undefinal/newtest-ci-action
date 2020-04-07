@@ -48,43 +48,44 @@ function newtestRequest() {
     sigNonce: uuid.v1(),
     signMethod: 'SHA256'
   };
-  let paramObj;
-  try {
-    paramObj = JSON.parse(paramStr)
-  } catch (error) {
-    core.setFailed(error.message);
-    return;
+  if (paramStr) {
+    let paramObj;
+    try {
+      paramObj = JSON.parse(paramStr)
+    } catch (error) {
+      core.setFailed(error.message);
+      return;
+    }
+    if (type === 'open') {
+      if (!paramObj.uuids) {
+        core.setFailed('no uuids');
+        return;
+      }
+      param.uuids = paramObj.uuids;
+      paramObj.maxMin && (param.maxMin = paramObj.maxMin);
+    } else if (type === 'release') {
+      if (!paramObj.uuids) {
+        core.setFailed('no uuids');
+        return;
+      }
+      param.uuids = paramObj.uuids;
+    } else if (type === 'devicesNum') {
+      if (!paramObj.deviceNumber) {
+        core.setFailed('no devicesNum');
+        return;
+      }
+      param.deviceNumber = paramObj.deviceNumber;
+    } else if (type === 'devices') {
+      paramObj.brands && (param.brands = paramObj.brands);
+      paramObj.sdks && (param.sdks = paramObj.sdks);
+      paramObj.resolutions && (param.resolutions = paramObj.resolutions);
+      paramObj.cpus && (param.cpus = paramObj.cpus);
+      paramObj.years && (param.years = paramObj.years);
+      paramObj.models && (param.models = paramObj.models);
+      paramObj.uuids && (param.uuids = paramObj.uuids);
+      paramObj.aliases && (param.aliases = paramObj.aliases);
+    }
   }
-  if (type === 'open') {
-    if(!paramObj.uuids){
-      core.setFailed('no uuids');
-      return;
-    }
-    param.uuids = paramObj.uuids;
-    paramObj.maxMin && (param.maxMin = paramObj.maxMin);
-  } else if (type === 'release') {
-    if(!paramObj.uuids){
-      core.setFailed('no uuids');
-      return;
-    }
-    param.uuids = paramObj.uuids;
-  } else if (type === 'devicesNum') {
-    if(!paramObj.deviceNumber){
-      core.setFailed('no devicesNum');
-      return;
-    }
-    param.deviceNumber = paramObj.deviceNumber;
-  } else if (type === 'devicesNum') {
-    paramObj.brands && (param.brands = paramObj.brands);
-    paramObj.sdks && (param.sdks = paramObj.sdks);
-    paramObj.resolutions && (param.resolutions = paramObj.resolutions);
-    paramObj.cpus && (param.cpus = paramObj.cpus);
-    paramObj.years && (param.years = paramObj.years);
-    paramObj.models && (param.models = paramObj.models);
-    paramObj.uuids && (param.uuids = paramObj.uuids);
-    paramObj.aliases && (param.aliases = paramObj.aliases);
-  }
-
 
   function sortObj(old) {
     var newObj = {};
