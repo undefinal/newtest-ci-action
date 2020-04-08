@@ -114,7 +114,7 @@ function getDevice(param, type) {
         return;
       }
       const rsp = response.toJSON();
-      console.error(rsp.body);
+      console.error('getDevice', rsp.body);
       if (rsp.statusCode !== 200) {
         resolve({
           code: -1,
@@ -169,7 +169,7 @@ function getDevice(param, type) {
 function openAdb(param) {
   return new Promise(resolve => {
     param = handleParam(param);
-    request(urlOpen, {
+    request(urlRelease, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -187,7 +187,7 @@ function openAdb(param) {
         return;
       }
       const rsp = response.toJSON();
-      console.error(rsp.body);
+      console.error('openAdb', rsp.body);
       if (rsp.statusCode !== 200) {
         resolve({
           code: -1,
@@ -273,7 +273,7 @@ function releaseAdb(param) {
         return;
       }
       const rsp = response.toJSON();
-      console.error(rsp.body);
+      console.error('releaseAdb', rsp.body);
       if (rsp.statusCode !== 200) {
         resolve({
           code: -1,
