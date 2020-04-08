@@ -31,7 +31,7 @@ async function newtestRequest() {
     }
     const getDeviceParam = Object.assign({}, param);
     getDeviceParam.signTime = Date.now();
-    getDeviceParam.sigNonce = uuid.v1();
+    getDeviceParam.signNonce = uuid.v1();
     getDeviceParam.deviceNumber = paramObj.deviceNumber;
     const result = await getDevice(getDeviceParam, getDeviceBy);
     if (result.code !== 0) {
@@ -67,10 +67,9 @@ async function newtestRequest() {
   }
   const openParam = Object.assign({}, param);
   openParam.signTime = Date.now();
-  openParam.sigNonce = uuid.v1();
+  openParam.signNonce = uuid.v1();
   openParam.uuids = uuids;
   openParam.maxMin = '1';
-  console.log('openParam', openParam)
   const rst = await openAdb(openParam);
   if (rst.code !== 0) {
     console.error(rst.msg)
@@ -82,7 +81,7 @@ async function newtestRequest() {
       if (err) {
         const releaseParam = Object.assign({}, param);
         releaseParam.signTime = Date.now();
-        releaseParam.sigNonce = uuid.v1();
+        releaseParam.signNonce = uuid.v1();
         releaseParam.uuids = uuids;
         const rst = await releaseAdb(releaseParam);
         console.error('release result', rst);
@@ -92,7 +91,7 @@ async function newtestRequest() {
         console.error('script', err, stdout, stderr)
         const releaseParam = Object.assign({}, param);
         releaseParam.signTime = Date.now();
-        releaseParam.sigNonce = uuid.v1();
+        releaseParam.signNonce = uuid.v1();
         releaseParam.uuids = uuids;
         const rst = await releaseAdb(releaseParam);
         console.error('release result', rst);
