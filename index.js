@@ -7,10 +7,10 @@ const urlOpen = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/In
 const urlRelease = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/releaseAdb';
 const urlDevices = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/getDeviceByConditions';
 const urlDevicesNum = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/randomGetDevice';
+
 const paramObj = process.env;
 const secretId = paramObj.secretId;
 const secretKey = paramObj.secretKey;
-
 
 async function newtestRequest() {
   const getDeviceBy = paramObj.getDeviceBy;
@@ -33,12 +33,12 @@ async function newtestRequest() {
     }
     const getDeviceParam = Object.assign({}, param);
     getDeviceParam.deviceNumber = paramObj.deviceNumber;
-    const result = await getDevice(getDeviceParam, getDeviceBy);
-    if (result.code !== 0) {
-      console.error(result.msg)
-      process.exit(1);
-    }
-    uuids = result.data;
+    // const result = await getDevice(getDeviceParam, getDeviceBy);
+    // if (result.code !== 0) {
+    //   console.error(result.msg)
+    //   process.exit(1);
+    // }
+    // uuids = result.data;
   } else if (getDeviceBy == 'condition') {
     const getDeviceParam = Object.assign({}, param);
     paramObj.brands && (getDeviceParam.brands = paramObj.brands);
@@ -59,7 +59,7 @@ async function newtestRequest() {
     console.error('getDeviceBy should be random or condition')
     return;
   }
-
+  uuids = ['9C305C4E4B2D472988D1F34561ACD17E'];
   const openParam = Object.assign({}, param);
   openParam.uuids = uuids;
   openParam.maxMin = '60';
@@ -169,7 +169,7 @@ function getDevice(param, type) {
 function openAdb(param) {
   return new Promise(resolve => {
     param = handleParam(param);
-    request(urlRelease, {
+    request(urlOpen, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
