@@ -36,22 +36,30 @@ async function newtestRequest() {
     }
     const getDeviceParam = Object.assign({}, param);
     getDeviceParam.deviceNumber = paramObj.deviceNumber;
-    // const result = await getDevice(getDeviceParam, getDeviceBy);
-    // if (result.code !== 0) {
-    //   console.error(result.msg)
-    //   process.exit(1);
-    // }
-    // uuids = result.data;
+    const result = await getDevice(getDeviceParam, getDeviceBy);
+    const result2 = await getDevice(getDeviceParam, getDeviceBy);
+    console.log(result2);
+    if (result.code !== 0) {
+      console.error(result.msg)
+      process.exit(1);
+    }
+    uuids = result.data;
   } else if (getDeviceBy == 'condition') {
     const getDeviceParam = Object.assign({}, param);
-    paramObj.brands && (getDeviceParam.brands = paramObj.brands);
-    paramObj.sdks && (getDeviceParam.sdks = paramObj.sdks);
-    paramObj.resolutions && (getDeviceParam.resolutions = paramObj.resolutions);
-    paramObj.cpus && (getDeviceParam.cpus = paramObj.cpus);
-    paramObj.years && (getDeviceParam.years = paramObj.years);
-    paramObj.models && (getDeviceParam.models = paramObj.models);
-    paramObj.uuids && (getDeviceParam.uuids = paramObj.uuids);
-    paramObj.aliases && (getDeviceParam.aliases = paramObj.aliases);
+    try {
+      paramObj.brands && (getDeviceParam.brands = JSON.parse(paramObj.brands));
+      paramObj.sdks && (getDeviceParam.sdks = JSON.parse(paramObj.sdks));
+      paramObj.resolutions && (getDeviceParam.resolutions = JSON.parse(paramObj.resolutions));
+      paramObj.cpus && (getDeviceParam.cpus = JSON.parse(paramObj.cpus));
+      paramObj.years && (getDeviceParam.years = JSON.parse(paramObj.years));
+      paramObj.models && (getDeviceParam.models = JSON.parse(paramObj.models));
+      paramObj.uuids && (getDeviceParam.uuids = JSON.parse(paramObj.uuids));
+      paramObj.aliases && (getDeviceParam.aliases = JSON.parse(paramObj.aliases));
+    } catch (error) {
+      console.error('getDeviceParam', error)
+      process.exit(1);
+    }
+
     const result = await getDevice(getDeviceParam, getDeviceBy);
     if (result.code !== 0) {
       console.error(result.msg)
@@ -62,7 +70,6 @@ async function newtestRequest() {
     console.error('getDeviceBy should be random or condition')
     return;
   }
-  uuids = ['9C305C4E4B2D472988D1F34561ACD17E'];
   const openParam = Object.assign({}, param);
   openParam.uuids = uuids;
   openParam.maxMin = '1';
