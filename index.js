@@ -41,6 +41,8 @@ async function newtestRequest() {
     uuids = result.data;
   } else if (getDeviceBy == 'condition') {
     const getDeviceParam = Object.assign({}, param);
+    getDeviceParam.signTime = Date.now();
+    getDeviceParam.signNonce = uuid.v1();
     try {
       paramObj.brands && (getDeviceParam.brands = JSON.parse(paramObj.brands));
       paramObj.sdks && (getDeviceParam.sdks = JSON.parse(paramObj.sdks));
@@ -54,7 +56,6 @@ async function newtestRequest() {
       console.error('getDeviceParam', error)
       process.exit(1);
     }
-
     const result = await getDevice(getDeviceParam, getDeviceBy);
     if (result.code !== 0) {
       console.error(result.msg)
