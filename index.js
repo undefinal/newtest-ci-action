@@ -18,11 +18,8 @@ async function newtestRequest() {
     console.error('please set secretId,secretKey,getDeviceBy')
     return;
   }
-  const signTime = Date.now();
   const param = {
     secretId: secretId,
-    signTime: signTime,
-    sigNonce: uuid.v1(),
     signMethod: 'SHA256'
   };
 
@@ -33,6 +30,8 @@ async function newtestRequest() {
       return;
     }
     const getDeviceParam = Object.assign({}, param);
+    getDeviceParam.signTime = Date.now();
+    getDeviceParam.sigNonce = uuid.v1();
     getDeviceParam.deviceNumber = paramObj.deviceNumber;
     const result = await getDevice(getDeviceParam, getDeviceBy);
     if (result.code !== 0) {
@@ -67,6 +66,8 @@ async function newtestRequest() {
     return;
   }
   const openParam = Object.assign({}, param);
+  openParam.signTime = Date.now();
+  openParam.sigNonce = uuid.v1();
   openParam.uuids = uuids;
   openParam.maxMin = '1';
   console.log('openParam', openParam)
@@ -80,6 +81,8 @@ async function newtestRequest() {
       console.error('adb connect', err, stdout, stderr)
       if (err) {
         const releaseParam = Object.assign({}, param);
+        releaseParam.signTime = Date.now();
+        releaseParam.sigNonce = uuid.v1();
         releaseParam.uuids = uuids;
         const rst = await releaseAdb(releaseParam);
         console.error('release result', rst);
@@ -88,6 +91,8 @@ async function newtestRequest() {
       exec(paramObj.script, async (err, stdout, stderr) => {
         console.error('script', err, stdout, stderr)
         const releaseParam = Object.assign({}, param);
+        releaseParam.signTime = Date.now();
+        releaseParam.sigNonce = uuid.v1();
         releaseParam.uuids = uuids;
         const rst = await releaseAdb(releaseParam);
         console.error('release result', rst);
