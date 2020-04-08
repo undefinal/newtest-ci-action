@@ -12,8 +12,6 @@ const paramObj = process.env;
 const secretId = paramObj.secretId;
 const secretKey = paramObj.secretKey;
 
-console.error('paramObj', paramObj)
-
 async function newtestRequest() {
   const getDeviceBy = paramObj.getDeviceBy;
   if (!secretId || !secretKey || !getDeviceBy) {
@@ -37,8 +35,6 @@ async function newtestRequest() {
     const getDeviceParam = Object.assign({}, param);
     getDeviceParam.deviceNumber = paramObj.deviceNumber;
     const result = await getDevice(getDeviceParam, getDeviceBy);
-    const result2 = await getDevice(getDeviceParam, getDeviceBy);
-    console.log(result2);
     if (result.code !== 0) {
       console.error(result.msg)
       process.exit(1);
@@ -73,6 +69,7 @@ async function newtestRequest() {
   const openParam = Object.assign({}, param);
   openParam.uuids = uuids;
   openParam.maxMin = '1';
+  console.log('openParam', openParam)
   const rst = await openAdb(openParam);
   if (rst.code !== 0) {
     console.error(rst.msg)
