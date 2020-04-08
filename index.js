@@ -10,7 +10,6 @@ const urlDevicesNum = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-rem
 const paramObj = process.env;
 const secretId = paramObj.secretId;
 const secretKey = paramObj.secretKey;
-console.error('env', paramObj);
 
 
 async function newtestRequest() {
@@ -71,7 +70,7 @@ async function newtestRequest() {
   }
   rst.data.forEach(item => {
     exec(`adb connect utest.21kunpeng.com:${item.data}`, async (err, stdout, stderr) => {
-      console.error(err, stdout, stderr)
+      console.error('adb connect', err, stdout, stderr)
       if (err) {
         const releaseParam = Object.assign({}, param);
         releaseParam.uuids = uuids;
@@ -80,7 +79,7 @@ async function newtestRequest() {
         return;
       }
       exec(paramObj.script, async (err, stdout, stderr) => {
-        console.error(err, stdout, stderr)
+        console.error('script', err, stdout, stderr)
         const releaseParam = Object.assign({}, param);
         releaseParam.uuids = uuids;
         const rst = await releaseAdb(releaseParam);
@@ -107,7 +106,7 @@ function getDevice(param, type) {
       body: JSON.stringify(param)
     }, (error, response) => {
       if (error) {
-        console.error(error);
+        console.error('getDevice', error);
         resolve({
           code: -1,
           msg: error.message
@@ -180,7 +179,7 @@ function openAdb(param) {
       body: JSON.stringify(param)
     }, (error, response) => {
       if (error) {
-        console.error(error);
+        console.error('openAdb', error);
         resolve({
           code: -1,
           msg: error.message
@@ -188,6 +187,7 @@ function openAdb(param) {
         return;
       }
       const rsp = response.toJSON();
+      console.error(rsp.body);
       if (rsp.statusCode !== 200) {
         resolve({
           code: -1,
@@ -265,7 +265,7 @@ function releaseAdb(param) {
       body: JSON.stringify(param)
     }, (error, response) => {
       if (error) {
-        console.error(error);
+        console.error('releaseAdb', error);
         resolve({
           code: -1,
           msg: error.message
@@ -273,6 +273,7 @@ function releaseAdb(param) {
         return;
       }
       const rsp = response.toJSON();
+      console.error(rsp.body);
       if (rsp.statusCode !== 200) {
         resolve({
           code: -1,
