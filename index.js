@@ -108,6 +108,7 @@ function getDevice(param, type) {
   }
   return new Promise(resolve => {
     param = handleParam(param);
+    console.log('getDevice',param)
     request(url, {
       method: "POST",
       headers: {
@@ -181,6 +182,7 @@ function getDevice(param, type) {
 function openAdb(param) {
   return new Promise(resolve => {
     param = handleParam(param);
+    console.log('openAdb',param)
     request(urlOpen, {
       method: "POST",
       headers: {
@@ -267,6 +269,7 @@ function openAdb(param) {
 function releaseAdb(param) {
   return new Promise(resolve => {
     param = handleParam(param);
+    console.log('releaseAdb',param)
     request(urlRelease, {
       method: "POST",
       headers: {
