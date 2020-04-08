@@ -12,6 +12,8 @@ const paramObj = process.env;
 const secretId = paramObj.secretId;
 const secretKey = paramObj.secretKey;
 
+console.error('paramObj', paramObj)
+
 async function newtestRequest() {
   const getDeviceBy = paramObj.getDeviceBy;
   if (!secretId || !secretKey || !getDeviceBy) {
@@ -25,6 +27,7 @@ async function newtestRequest() {
     sigNonce: uuid.v1(),
     signMethod: 'SHA256'
   };
+
   let uuids = [];
   if (getDeviceBy == 'random') {
     if (!paramObj.deviceNumber) {
@@ -62,7 +65,7 @@ async function newtestRequest() {
   uuids = ['9C305C4E4B2D472988D1F34561ACD17E'];
   const openParam = Object.assign({}, param);
   openParam.uuids = uuids;
-  openParam.maxMin = '60';
+  openParam.maxMin = '1';
   const rst = await openAdb(openParam);
   if (rst.code !== 0) {
     console.error(rst.msg)
@@ -226,7 +229,7 @@ function openAdb(param) {
               } else {
                 resolve({
                   code: -1,
-                  msg
+                  erruuids
                 });
               }
             } else {
