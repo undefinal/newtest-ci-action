@@ -1,95 +1,344 @@
 const request = require('request');
 const uuid = require('uuid');
 const crypto = require('crypto');
-const core = require("@actions/core")
+const exec = require('child_process').exec;
 
-const secretId = core.getInput("secretId", {
-  required: true
-});
-const secretKey = core.getInput("secretKey", {
-  required: true
-});
 const urlOpen = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/openAdb';
 const urlRelease = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/releaseAdb';
 const urlDevices = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/getDeviceByConditions';
 const urlDevicesNum = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/randomGetDevice';
+const paramObj = process.env;
+const secretId = paramObj.secretId;
+const secretKey = paramObj.secretKey;
+console.error('env', paramObj);
 
-function newtestRequest() {
-  const type = core.getInput("type", {
-    required: true
-  });
-  const paramStr = core.getInput("paramStr");
-  const signTime = Date.now();
-  let url = '';
-  switch (type) {
-    case 'open':
-      url = urlOpen;
-      break;
-    case 'release':
-      url = urlRelease;
-      break;
-    case 'devices':
-      url = urlDevices;
-      break;
-    case 'devicesNum':
-      url = urlDevicesNum;
-      break;
-  }
-  if (!url) {
-    const msg = 'please set the type of [open,release,devices,devicesNum]';
-    console.error(msg);
-    core.setFailed(msg);
+
+async function newtestRequest() {
+  const getDeviceBy = paramObj.getDeviceBy;
+  if (!secretId || !secretKey || !getDeviceBy) {
+    console.error('please set secretId,secretKey,getDeviceBy')
     return;
   }
-  let str = '';
-  let param = {
+  const signTime = Date.now();
+  const param = {
     secretId: secretId,
     signTime: signTime,
     sigNonce: uuid.v1(),
     signMethod: 'SHA256'
   };
-  if (paramStr) {
-    let paramObj;
-    try {
-      paramObj = JSON.parse(paramStr)
-    } catch (error) {
-      core.setFailed(error.message);
+  let uuids = [];
+  if (getDeviceBy == 'random') {
+    if (!paramObj.deviceNumber) {
+      console.error('no deviceNumber');
       return;
     }
-    if (type === 'open') {
-      if (!paramObj.uuids) {
-        core.setFailed('no uuids');
-        return;
-      }
-      if (!paramObj.maxMin) {
-        core.setFailed('no maxMin');
-        return;
-      }
-      param.uuids = paramObj.uuids;
-      param.maxMin = paramObj.maxMin;
-    } else if (type === 'release') {
-      if (!paramObj.uuids) {
-        core.setFailed('no uuids');
-        return;
-      }
-      param.uuids = paramObj.uuids;
-    } else if (type === 'devicesNum') {
-      if (!paramObj.deviceNumber) {
-        core.setFailed('no deviceNumber');
-        return;
-      }
-      param.deviceNumber = paramObj.deviceNumber;
-    } else if (type === 'devices') {
-      paramObj.brands && (param.brands = paramObj.brands);
-      paramObj.sdks && (param.sdks = paramObj.sdks);
-      paramObj.resolutions && (param.resolutions = paramObj.resolutions);
-      paramObj.cpus && (param.cpus = paramObj.cpus);
-      paramObj.years && (param.years = paramObj.years);
-      paramObj.models && (param.models = paramObj.models);
-      paramObj.uuids && (param.uuids = paramObj.uuids);
-      paramObj.aliases && (param.aliases = paramObj.aliases);
+    const getDeviceParam = Object.assign({}, param);
+    getDeviceParam.deviceNumber = paramObj.deviceNumber;
+    const result = await getDevice(getDeviceParam, getDeviceBy);
+    if (result.code !== 0) {
+      console.error(result.msg)
+      process.exit(1);
     }
+    uuids = result.data;
+  } else if (getDeviceBy == 'condition') {
+    const getDeviceParam = Object.assign({}, param);
+    paramObj.brands && (getDeviceParam.brands = paramObj.brands);
+    paramObj.sdks && (getDeviceParam.sdks = paramObj.sdks);
+    paramObj.resolutions && (getDeviceParam.resolutions = paramObj.resolutions);
+    paramObj.cpus && (getDeviceParam.cpus = paramObj.cpus);
+    paramObj.years && (getDeviceParam.years = paramObj.years);
+    paramObj.models && (getDeviceParam.models = paramObj.models);
+    paramObj.uuids && (getDeviceParam.uuids = paramObj.uuids);
+    paramObj.aliases && (getDeviceParam.aliases = paramObj.aliases);
+    const result = await getDevice(getDeviceParam, getDeviceBy);
+    if (result.code !== 0) {
+      console.error(result.msg)
+      process.exit(1);
+    }
+    uuids = result.data;
+  } else {
+    console.error('getDeviceBy should be random or condition')
+    return;
   }
+
+  const openParam = Object.assign({}, param);
+  openParam.uuids = uuids;
+  openParam.maxMin = '60';
+  const rst = await openAdb(openParam);
+  if (rst.code !== 0) {
+    console.error(rst.msg)
+    process.exit(1);
+  }
+  rst.data.forEach(item => {
+    exec(`adb connect utest.21kunpeng.com:${item.data}`, async (err, stdout, stderr) => {
+      console.error(err, stdout, stderr)
+      if (err) {
+        const releaseParam = Object.assign({}, param);
+        releaseParam.uuids = uuids;
+        const rst = await releaseAdb(releaseParam);
+        console.error('release result', rst);
+        return;
+      }
+      exec(paramObj.script, async (err, stdout, stderr) => {
+        console.error(err, stdout, stderr)
+        const releaseParam = Object.assign({}, param);
+        releaseParam.uuids = uuids;
+        const rst = await releaseAdb(releaseParam);
+        console.error('release result', rst);
+      })
+    })
+  })
+}
+
+function getDevice(param, type) {
+  let url = urlDevices;
+  if (type == 'random') {
+    url = urlDevicesNum
+  }
+  return new Promise(resolve => {
+    param = handleParam(param);
+    request(url, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Authorization': secretId,
+        'token': secretId
+      },
+      body: JSON.stringify(param)
+    }, (error, response) => {
+      if (error) {
+        console.error(error);
+        resolve({
+          code: -1,
+          msg: error.message
+        });
+        return;
+      }
+      const rsp = response.toJSON();
+      console.error(rsp.body);
+      if (rsp.statusCode !== 200) {
+        resolve({
+          code: -1,
+          msg: `getDevice error: ${rsp.statusCode} ${rsp.body}`
+        });
+      } else {
+        let body = rsp.body;
+        try {
+          body = JSON.parse(body);
+        } catch (error) {
+          resolve({
+            code: -1,
+            msg: `parse body error:${error.message}`
+          });
+        }
+        if (body.code === 200) {
+          const rst = body.result;
+          if (rst.state == 22222222) {
+            const data = rst.data;
+            if (data && data.length > 0) {
+              let uuids = [];
+              data.forEach(item => {
+                uuids.push(item.uuid);
+              });
+              resolve({
+                code: 0,
+                data: uuids
+              });
+            } else {
+              resolve({
+                code: -1,
+                msg: `getDevice error: no data`
+              });
+            }
+          } else {
+            resolve({
+              code: -1,
+              msg: `getDevice error: ${rst.state} ${rst.message}`
+            });
+          }
+        } else {
+          resolve({
+            code: -1,
+            msg: `getDevice error: ${rsp.body}`
+          });
+        }
+      }
+    })
+  })
+}
+
+function openAdb(param) {
+  return new Promise(resolve => {
+    param = handleParam(param);
+    request(urlOpen, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Authorization': secretId,
+        'token': secretId
+      },
+      body: JSON.stringify(param)
+    }, (error, response) => {
+      if (error) {
+        console.error(error);
+        resolve({
+          code: -1,
+          msg: error.message
+        });
+        return;
+      }
+      const rsp = response.toJSON();
+      if (rsp.statusCode !== 200) {
+        resolve({
+          code: -1,
+          msg: `openAdb error: ${rsp.statusCode} ${rsp.body}`
+        });
+      } else {
+        let body = rsp.body;
+        try {
+          body = JSON.parse(body);
+        } catch (error) {
+          resolve({
+            code: -1,
+            msg: `parse body error:${error.message}`
+          });
+        }
+        if (body.code === 200) {
+          const rst = body.result;
+          if (rst.state == 22222222) {
+            const data = rst.data;
+            if (data && data.length > 0) {
+              let uuids = [];
+              let erruuids = [];
+              data.forEach(item => {
+                if (item.rc == 0) {
+                  uuids.push(item)
+                } else {
+                  erruuids.push(item)
+                }
+              });
+              if (uuids.length > 0) {
+                resolve({
+                  code: 0,
+                  data: uuids,
+                  erruuids
+                });
+              } else {
+                resolve({
+                  code: -1,
+                  msg
+                });
+              }
+            } else {
+              resolve({
+                code: -1,
+                msg: `openAdb error: no data`
+              });
+            }
+          } else {
+            resolve({
+              code: -1,
+              msg: `openAdb error: ${rst.state} ${rst.message}`
+            });
+          }
+        } else {
+          resolve({
+            code: -1,
+            msg: `openAdb error: ${rsp.body}`
+          });
+        }
+      }
+    })
+  })
+}
+
+function releaseAdb(param) {
+  return new Promise(resolve => {
+    param = handleParam(param);
+    request(urlRelease, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Authorization': secretId,
+        'token': secretId
+      },
+      body: JSON.stringify(param)
+    }, (error, response) => {
+      if (error) {
+        console.error(error);
+        resolve({
+          code: -1,
+          msg: error.message
+        });
+        return;
+      }
+      const rsp = response.toJSON();
+      if (rsp.statusCode !== 200) {
+        resolve({
+          code: -1,
+          msg: `openAdb error: ${rsp.statusCode} ${rsp.body}`
+        });
+      } else {
+        let body = rsp.body;
+        try {
+          body = JSON.parse(body);
+        } catch (error) {
+          resolve({
+            code: -1,
+            msg: `parse body error:${error.message}`
+          });
+        }
+        if (body.code === 200) {
+          const rst = body.result;
+          if (rst.state == 22222222) {
+            const data = rst.data;
+            if (data && data.length > 0) {
+              let uuids = [];
+              let erruuids = [];
+              data.forEach(item => {
+                if (item.rc == 0) {
+                  uuids.push(item)
+                } else {
+                  erruuids.push(item)
+                }
+              });
+              if (uuids.length > 0) {
+                resolve({
+                  code: 0,
+                  data: uuids,
+                  erruuids
+                });
+              } else {
+                resolve({
+                  code: -1,
+                  msg
+                });
+              }
+            } else {
+              resolve({
+                code: -1,
+                msg: `releaseAdb error: no data`
+              });
+            }
+          } else {
+            resolve({
+              code: -1,
+              msg: `releaseAdb error: ${rst.state} ${rst.message}`
+            });
+          }
+        } else {
+          resolve({
+            code: -1,
+            msg: `releaseAdb error: ${rsp.body}`
+          });
+        }
+      }
+    })
+  })
+}
+
+function handleParam(config) {
+  let str = '';
 
   function sortObj(old) {
     var newObj = {};
@@ -98,7 +347,7 @@ function newtestRequest() {
     });
     return newObj;
   }
-  param = sortObj(param);
+  let param = sortObj(config);
   for (let key in param) {
     if (typeof param[key] !== 'object') {
       str += `${key}=${param[key]}`;
@@ -110,28 +359,6 @@ function newtestRequest() {
   str += `secretKey=${secretKey}`;
   param.sign = crypto.createHash('SHA256').update(str).digest('hex');
   param = sortObj(param);
-  console.error(JSON.stringify(param))
-  request(url, {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
-      'Authorization': secretId,
-      'token': secretId
-    },
-    body: JSON.stringify(param)
-  }, (error, response) => {
-    if (error) {
-      console.error(error);
-      core.setFailed(error.message);
-      return;
-    }
-    const rsp = response.toJSON();
-    console.error(rsp.body);
-    if (rsp.statusCode !== 200) {
-      core.setFailed(rsp.body);
-    } else {
-      core.setOutput("response", rsp.body);
-    }
-  })
+  return param;
 }
 newtestRequest()

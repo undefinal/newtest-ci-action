@@ -4,19 +4,6 @@ author: undefinal
 branding:
   icon: check-circle
   color: blue
-inputs:
-  secretId:
-    description: secretId
-    required: true
-  secretKey:
-    description: secretKey
-    required: true
-  type:
-    description: request type should be one of [open,release,devices,devicesNum]
-    required: true
-  params:
-    params: request params
-    required: false
 runs:
-  using: node12
-  main: index.js
+  using: 'docker'
+  image: 'Dockerfile'
