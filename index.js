@@ -107,6 +107,12 @@ function getDevice(param, type) {
     url = urlDevicesNum
   }
   return new Promise(resolve => {
+    resolve({
+      code: 0,
+      data: ['AEEBC219ED43672A130DC7EE78FA6FA0',
+      'F2D5B09AA51EFE6EEF539952ED6CADBB']
+    });
+    return;
     param = handleParam(param);
     console.log('getDevice',param)
     request(url, {
