@@ -3,6 +3,5 @@ FROM node:10
 WORKDIR /app
 COPY . .
 RUN npm install
-RUN apt-get install adb
 
 ENTRYPOINT node /app/index.js
