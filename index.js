@@ -3,10 +3,10 @@ const uuid = require('uuid');
 const crypto = require('crypto');
 const exec = require('child_process').exec;
 
-const urlOpen = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/openAdb';
-const urlRelease = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/InsideSecret/adb/releaseAdb';
-const urlDevices = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/getDeviceByConditions';
-const urlDevicesNum = 'https://newtest.21kunpeng.com:18074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/randomGetDevice';
+const urlOpen = 'https://utest.21kunpeng.com:19074/jyx-paas-provider-remote/InsideSecret/adb/openAdb';
+const urlRelease = 'https://utest.21kunpeng.com:19074/jyx-paas-provider-remote/InsideSecret/adb/releaseAdb';
+const urlDevices = 'https://utest.21kunpeng.com:19074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/getDeviceByConditions';
+const urlDevicesNum = 'https://utest.21kunpeng.com:19074/jyx-paas-provider-remote/deviceInfo/InsideSecret/adb/randomGetDevice';
 
 const paramObj = process.env;
 const secretId = paramObj.secretId;
